@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto;">
+  <h2>Complete Your Intake Form — {{ clinic_name }}</h2>
+  <p>Hi {{ patient_name }},</p>
+  <p>We're looking forward to your appointment on <strong>{{ appointment_time }}</strong>.</p>
+  <p>To ensure the best possible care, please reply to this email with the following information:</p>
+  <ul>
+    <li>Your chief complaint (why are you coming in?)</li>
+    <li>Current medications (list all, including over-the-counter)</li>
+    <li>Known allergies</li>
+    <li>Past medical history</li>
+    <li>Past surgical history</li>
+    <li>Family history</li>
+    <li>Anything else the doctor should know</li>
+  </ul>
+  <p>Just reply to this email — no forms to fill out. Your message will be automatically processed and summarized for the doctor.</p>
+  <p><strong>Important:</strong> Intake forms must be completed at least 24 hours before your appointment to avoid cancellation.</p>
+  <p>Thank you,<br>{{ clinic_name }}</p>
+  <div style="display:none; max-height:1px; overflow:hidden; opacity:0; color:#ffffff; font-size:1px;">
+    Ref: #{{ ref_code }}
+  </div>
+</body>
+</html>

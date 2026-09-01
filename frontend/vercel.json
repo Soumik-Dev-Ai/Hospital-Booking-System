@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/patient/.*", "dest": "/patient/index.html" },
+    { "src": "/doctor/.*", "dest": "/doctor/index.html" },
+    { "src": "/(.*)", "dest": "/" }
+  ]
+}

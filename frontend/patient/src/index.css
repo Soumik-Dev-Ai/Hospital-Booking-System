@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Fraunces", "Georgia", serif;
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* Soft Alabaster */
+  --color-alabaster-50: #fcfbf7;
+  --color-alabaster-100: #f6f3ec;
+  --color-alabaster-200: #ede8dc;
+  --color-alabaster-300: #e0d9c8;
+
+  /* Forest Green */
+  --color-forest-50: #edf4ef;
+  --color-forest-100: #d8e7dd;
+  --color-forest-200: #b2cdbb;
+  --color-forest-300: #8bb09a;
+  --color-forest-400: #63917a;
+  --color-forest-500: #41735d;
+  --color-forest-600: #2e5b49;
+  --color-forest-700: #23473a;
+  --color-forest-800: #1a372d;
+  --color-forest-900: #122b22;
+  --color-forest-950: #0a1e17;
+
+  /* Champagne accents */
+  --color-champagne-200: #f1e4c3;
+  --color-champagne-300: #e7d3a3;
+  --color-champagne-400: #d9bc7f;
+  --color-champagne-500: #c7a35c;
+  --color-champagne-600: #a9853f;
+
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-alabaster-100 font-sans text-forest-950 antialiased;
+  }
+
+  ::selection {
+    background-color: var(--color-forest-700);
+    color: var(--color-alabaster-100);
+  }
+
+  ::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--color-forest-800) 24%, transparent);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--color-forest-800) 40%, transparent);
+    background-clip: padding-box;
+  }
+}
+
+/* Film-grain texture */
+.grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Slow ambient drift for aurora blobs */
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(3.5%, -2.5%, 0) scale(1.07);
+  }
+}
+.animate-drift {
+  animation: drift 22s ease-in-out infinite;
+}
+
+/* Sheen sweep for CTAs */
+@keyframes sheen {
+  0% {
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  60%,
+  100% {
+    transform: translateX(240%) skewX(-18deg);
+  }
+}
+.animate-sheen {
+  animation: sheen 3.2s ease-in-out infinite;
+}
+
+/* Pulsing glow for freshly booked cards */
+@keyframes glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(199, 163, 92, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(199, 163, 92, 0);
+  }
+}
+.animate-glow-pulse {
+  animation: glow-pulse 2.4s ease-in-out infinite;
+}

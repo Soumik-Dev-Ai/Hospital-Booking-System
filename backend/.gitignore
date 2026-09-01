@@ -1,0 +1,14 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+node_modules/
+.venv/
+venv/
+*.log
+alembic/versions/*.py
+!alembic/versions/.gitkeep

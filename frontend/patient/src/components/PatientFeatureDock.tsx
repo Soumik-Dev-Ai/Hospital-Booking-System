@@ -1,0 +1,9 @@
+import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+
+export function PatientFeatureDock() {
+  const [events, setEvents] = useState<string[]>([]);
+  const [open, setOpen] = useState(false);
+  useEffect(() => { const timer = window.setInterval(() => setEvents((items) => [`Care team checked your intake · ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`, ...items].slice(0, 3)), 24000); return () => window.clearInterval(timer); }, []);
+  return <section className="mb-6 rounded-2xl border border-forest-900/8 bg-white/55 p-4 shadow-[0_20px_50px_-34px_rgba(18,43,34,0.45)] backdrop-blur-xl"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-forest-400">Live care coordination</p><p className="mt-1 text-sm font-semibold text-forest-950">Your care team is in sync.</p></div><button type="button" onClick={() => setOpen((value) => !value)} className="rounded-full border border-forest-900/10 px-3 py-2 text-[11px] font-semibold text-forest-600 transition hover:bg-forest-600/[0.05]">{open ? "Hide updates" : `${events.length || 1} live update${events.length === 1 ? "" : "s"}`}</button></div><AnimatePresence>{open && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden"><div className="mt-3 space-y-2 border-t border-forest-900/8 pt-3">{(events.length ? events : ["Your appointment timeline is ready for review."]).map((event, index) => <motion.p key={`${event}-${index}`} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }} className="text-xs text-forest-600">{event}</motion.p>)}</div></motion.div>}</AnimatePresence></section>;
+}

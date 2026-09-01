@@ -1,0 +1,27 @@
+
+# Node
+node_modules/
+dist/
+.next/
+out/
+build/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+alder_sage.db
+
+# Env
+.env
+.env.local
+.env.*
+
+# Graphify
+graphify-out/cache/
+graphify-out/
+
+# System
+.DS_Store
