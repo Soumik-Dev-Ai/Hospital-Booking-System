@@ -1,14 +1,20 @@
+from dotenv import load_dotenv
+load_dotenv()
 import socket
 from functools import lru_cache
 from typing import List, Optional
-from pydantic import ConfigDict
+from pydantic import ConfigDict, field_validator
 from pydantic_settings import BaseSettings
 
 def _get_db_url(is_sync=False) -> str:
     import os
     db_url = os.getenv('DATABASE_URL')
     if db_url:
-        if is_sync and 'asyncpg' in db_url: return db_url.replace('+asyncpg', '')
+        if db_url.startswith("postgres://"): db_url = db_url.replace("postgres://", "postgresql://", 1)
+        if not is_sync and not "asyncpg" in db_url and db_url.startswith("postgresql://"):
+            db_url = db_url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        if is_sync and "asyncpg" in db_url:
+            db_url = db_url.replace("+asyncpg", "")
         return db_url
     try:
         import socket
@@ -31,6 +37,17 @@ class Settings(BaseSettings):
     port: int = 8000
     log_level: str = 'info'
     cors_origins: List[str] = ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173', 'http://localhost:8080']
+
+    @field_validator('cors_origins', mode='before')
+    @classmethod
+    def assemble_cors_origins(cls, v):
+        if isinstance(v, str):
+            if v.startswith('[') and v.endswith(']'):
+                import json
+                try: return json.loads(v)
+                except Exception: pass
+            return [i.strip() for i in v.split(',') if i.strip()]
+        return v
     
     @property
     def database_url(self) -> str:

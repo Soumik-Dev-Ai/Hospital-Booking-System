@@ -67,7 +67,8 @@ class AIProvider:
     def configured(self) -> bool:
         if hasattr(self, '_configured_override'):
             return self._configured_override
-        return bool(self.base_url and self.api_key and self.model)
+        # Model is dynamically resolved if empty/auto; base_url and api_key are sufficient
+        return bool(self.base_url and self.api_key)
 
     def _build_response_format(self) -> dict:
         if self.supports_json_schema:
@@ -94,7 +95,59 @@ class AIProvider:
         except Exception:
             return False
 
+    async def _get_candidate_models(self) -> list[str]:
+        # If user explicitly configured a specific model that is not "auto", prioritize it
+        if self.model and self.model.strip().lower() not in ("auto", "dynamic", "none", ""):
+            return [self.model.strip()]
+
+        candidates = []
+        if self.name == "openrouter":
+            candidates.extend([
+                "nvidia/nemotron-3.5-lightning:free",
+                "recursive/flint-v1.0:free",
+                "xingchen-agi/xing4.0-29b-a4b:free",
+                "liquid/lfm-2.5-2.6b:free",
+                "google/gemma-4-31b-it:free",
+                "openrouter/auto",
+            ])
+        elif self.name == "nvidia_nim":
+            candidates.extend([
+                "meta/llama-3.2-3b-instruct",
+                "meta/llama-3.1-8b-instruct",
+                "ibm/granite-3.0-8b-instruct",
+                "mistralai/mistral-7b-instruct-v0.3",
+            ])
+        elif self.name == "groq":
+            candidates.extend(["llama-3.1-8b-instant", "llama-3.3-70b-versatile"])
+        elif self.name == "cerebras":
+            candidates.extend(["llama3.1-8b", "llama-3.3-70b"])
+
+        # Dynamically query available models from the provider API
+        try:
+            url = f"{self.base_url}/models"
+            headers = {"Authorization": f"Bearer {self.api_key}"}
+            async with httpx.AsyncClient(timeout=3.0) as client:
+                resp = await client.get(url, headers=headers)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    fetched = [
+                        m.get("id") for m in data.get("data", [])
+                        if isinstance(m, dict) and m.get("id")
+                    ]
+                    # Put completely free models at the very front of the candidate queue
+                    free_fetched = [m for m in fetched if ":free" in m]
+                    for m in reversed(free_fetched):
+                        if m not in candidates:
+                            candidates.insert(0, m)
+        except Exception:
+            pass
+
+        return candidates or ["openrouter/auto"]
+
     async def _chat_complete(self, raw_reply_text: str) -> str:
+        candidates = await self._get_candidate_models()
+        last_exception = None
+
         url = f"{self.base_url}/chat/completions"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -103,25 +156,44 @@ class AIProvider:
         if "openrouter.ai" in self.base_url:
             headers["HTTP-Referer"] = settings.app_base_url or "https://clinic.local"
             headers["X-Title"] = "patient-intake"
-        body = {
-            "model": self.model,
-            "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": (
-                    f"Parse the following patient email reply into the structured intake "
-                    f"JSON schema. Output only the raw JSON object.\n\n"
-                    f"Schema:\n{INTAKE_SCHEMA_DESCRIPTION}\n\n"
-                    f"Patient email:\n{raw_reply_text}"
-                )},
-            ],
-            "response_format": self._build_response_format(),
-            "temperature": 0.2,
-        }
-        async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT) as client:
-            resp = await client.post(url, headers=headers, json=body)
-            resp.raise_for_status()
-            data = resp.json()
-        return data["choices"][0]["message"]["content"]
+
+        for candidate in candidates:
+            self.last_model_used = candidate
+            body = {
+                "model": candidate,
+                "messages": [
+                    {"role": "system", "content": SYSTEM_PROMPT},
+                    {"role": "user", "content": (
+                        f"Parse the following patient email reply into the structured intake "
+                        f"JSON schema. Output only the raw JSON object.\n\n"
+                        f"Schema:\n{INTAKE_SCHEMA_DESCRIPTION}\n\n"
+                        f"Patient email:\n{raw_reply_text}"
+                    )},
+                ],
+                "response_format": self._build_response_format(),
+                "temperature": 0.2,
+            }
+            try:
+                async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT) as client:
+                    resp = await client.post(url, headers=headers, json=body)
+                    if resp.status_code in (402, 404, 429, 503):
+                        logger.warning(
+                            "ai_candidate_model_retry",
+                            provider=self.name,
+                            model=candidate,
+                            status=resp.status_code,
+                        )
+                        continue
+                    resp.raise_for_status()
+                    data = resp.json()
+                    return data["choices"][0]["message"]["content"]
+            except Exception as e:
+                last_exception = e
+                continue
+
+        if last_exception:
+            raise last_exception
+        raise RuntimeError(f"All candidate models failed for provider {self.name}")
 
     async def parse_intake(self, raw_reply_text: str) -> IntakeSummary:
         start = time.perf_counter()
@@ -135,7 +207,7 @@ class AIProvider:
             logger.info(
                 "ai_parse_success",
                 provider=self.name,
-                model=self.model,
+                model=getattr(self, "last_model_used", self.model),
                 completeness=summary.completeness_score,
             )
             return summary
@@ -240,7 +312,7 @@ async def parse_intake_with_fallback(raw_reply_text: str):
         for attempt in range(1, attempts + 1):
             try:
                 summary = await provider.parse_intake(raw_reply_text)
-                return summary, provider.name, provider.model
+                return summary, provider.name, getattr(provider, "last_model_used", provider.model)
             except Exception as e:
                 last_err = e
                 logger.warning("ai_provider_retry", provider=provider.name,

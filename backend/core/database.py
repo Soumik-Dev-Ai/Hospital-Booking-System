@@ -1,20 +1,26 @@
+import ssl
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 from .config import settings
 
-# Spec A.6: the Postgres connection MUST be encrypted in transit. `sslmode=require`
-# enforces TLS even if the server would otherwise negotiate a plaintext fallback.
+# Spec A.6: Postgres connection encrypted in transit.
 _connect_args: dict = {}
-if "postgresql" in settings.async_database_url and "sslmode" not in settings.async_database_url:
-    _connect_args["ssl"] = True
+if "postgresql" in settings.get_async_db_url:
+    ssl_ctx = ssl.create_default_context()
+    if "supabase" in settings.get_async_db_url or "pooler" in settings.get_async_db_url:
+        ssl_ctx.check_hostname = False
+        ssl_ctx.verify_mode = ssl.CERT_NONE
+    _connect_args["ssl"] = ssl_ctx
 
 engine = create_async_engine(
-    settings.async_database_url,
+    settings.get_async_db_url,
     echo=False,
-    
-    
     pool_pre_ping=True,
-    connect_args=_connect_args,
+    pool_recycle=300 if "supabase" in settings.get_async_db_url else 3600,
+    connect_args={
+        **_connect_args,
+        **({"prepared_statement_cache_size": 0} if "supabase" in settings.get_async_db_url or "pooler" in settings.get_async_db_url else {})
+    },
 )
 
 async_session_factory = async_sessionmaker(
@@ -34,5 +40,3 @@ async def get_db() -> AsyncSession:
             yield session
         finally:
             await session.close()
-
-
