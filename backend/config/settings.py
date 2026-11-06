@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 load_dotenv()
 import socket
 from functools import lru_cache
-from typing import List, Optional
+from typing import List, Optional, Union
 from pydantic import ConfigDict, field_validator
 from pydantic_settings import BaseSettings
 
@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     host: str = '0.0.0.0'
     port: int = 8000
     log_level: str = 'info'
-    cors_origins: List[str] = ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173', 'http://localhost:8080']
+    cors_origins: Union[List[str], str] = ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173', 'http://localhost:8080']
 
     @field_validator('cors_origins', mode='before')
     @classmethod
