@@ -556,5 +556,5 @@ async def google_callback(code: str, state: str = "patient", db: AsyncSession = 
     token = create_access_token(user.id, user.role, user.email)
     
     # Redirect to frontend callback
-    frontend_url = "http://localhost:3000" if settings.app_env == "development" else "https://your-frontend.com"
+    frontend_url = getattr(settings, "frontend_url", None) or os.getenv("FRONTEND_URL") or (settings.cors_origins[0] if settings.cors_origins else "http://localhost:3000")
     return RedirectResponse(f"{frontend_url}/auth/callback?token={token}&role={user.role}&name={name.replace(' ', '%20')}")

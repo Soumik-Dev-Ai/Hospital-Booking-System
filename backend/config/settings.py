@@ -64,6 +64,7 @@ class Settings(BaseSettings):
     google_client_id: str | None = None
     google_client_secret: str | None = None
     app_base_url: str | None = None
+    frontend_url: Optional[str] = None
     app_env: str = 'development'
     discord_webhook_url: Optional[str] = None
     slack_webhook_url: Optional[str] = None
