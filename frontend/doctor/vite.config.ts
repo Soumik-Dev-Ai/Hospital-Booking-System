@@ -21,7 +21,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: "../dist/doctor",
+    outDir: "dist",
     emptyOutDir: true,
   },
 });

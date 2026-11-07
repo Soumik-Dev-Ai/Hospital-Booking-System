@@ -24,9 +24,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: "../dist/patient",
-    // outDir is outside the project root – tell Vite we intend this and that
-    // it may safely empty it (only the patient/ subfolder, never the parent).
+    outDir: "dist",
     emptyOutDir: true,
   },
 });

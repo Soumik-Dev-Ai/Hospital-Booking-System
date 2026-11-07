@@ -1,15 +1,65 @@
 {
-  "version": 2,
-  "installCommand": "npm run install:all",
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "cleanUrls": true,
-  "trailingSlash": false,
-  "routes": [
-    { "handle": "filesystem" },
-    { "src": "/patient/.*", "dest": "/patient/index.html" },
-    { "src": "/doctor/.*", "dest": "/doctor/index.html" },
-    { "src": "/admin/.*", "dest": "/admin/index.html" },
-    { "src": "/(.*)", "dest": "/" }
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "admin": {
+      "root": "admin",
+      "framework": "nextjs"
+    },
+    "basewebsite": {
+      "root": "Base Website",
+      "framework": "nextjs"
+    },
+    "doctor": {
+      "root": "doctor",
+      "framework": "vite"
+    },
+    "patient": {
+      "root": "patient",
+      "framework": "vite"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/patient",
+      "destination": {
+        "service": "patient"
+      }
+    },
+    {
+      "source": "/patient/(.*)",
+      "destination": {
+        "service": "patient"
+      }
+    },
+    {
+      "source": "/doctor",
+      "destination": {
+        "service": "doctor"
+      }
+    },
+    {
+      "source": "/doctor/(.*)",
+      "destination": {
+        "service": "doctor"
+      }
+    },
+    {
+      "source": "/admin",
+      "destination": {
+        "service": "admin"
+      }
+    },
+    {
+      "source": "/admin/(.*)",
+      "destination": {
+        "service": "admin"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "basewebsite"
+      }
+    }
   ]
 }
