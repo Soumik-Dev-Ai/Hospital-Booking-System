@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     model_config = {'env_file': '.env', 'extra': 'ignore', 'case_sensitive': False}
-    database_url: str = 'sqlite:///./alder_sage.db'
+    database_url: str = 'sqlite+aiosqlite:///./alder_sage.db'
     async_database_url: str = "sqlite+aiosqlite:///./alder_sage.db"
     redis_url: str = "redis://localhost:6379/0"
     jwt_secret_key: str = "change-me-in-production"
@@ -40,11 +40,14 @@ class Settings(BaseSettings):
 
     @property
     def get_async_db_url(self) -> str:
-        url = self.database_url
+        import os
+        url = os.getenv("DATABASE_URL") or self.database_url
         if url.startswith("postgres://"):
             url = url.replace("postgres://", "postgresql://", 1)
         if "postgresql://" in url and "asyncpg" not in url:
             url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        if url.startswith("sqlite://") and "+aiosqlite" not in url:
+            url = url.replace("sqlite://", "sqlite+aiosqlite://", 1)
         return url
 
 settings = Settings()
