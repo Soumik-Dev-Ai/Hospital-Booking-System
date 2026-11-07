@@ -29,6 +29,7 @@ interface AuthContextValue {
   token: string | null;
   status: AuthStatus;
   authOpen: boolean;
+  setAuthOpen: (open: boolean) => void;
   authIntent: "book" | null;
   authMode: "login" | "signup";
   openAuth: (opts?: OpenAuthOptions) => void;
@@ -179,6 +180,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       token,
       status,
       authOpen,
+      setAuthOpen,
       authIntent,
       authMode,
       openAuth,

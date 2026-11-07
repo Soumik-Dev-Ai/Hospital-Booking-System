@@ -1,15 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'motion/react';
 import { useAuth, dashPath } from '@/components/providers/AuthProvider';
 import { Role } from '@/lib/types';
 
-export default function AuthCallbackPage() {
+function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { login, setAuthOpen } = useAuth();
+  const { setAuthOpen } = useAuth();
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
   const [roleDest, setRoleDest] = useState<Role>('patient');
 
@@ -27,19 +27,28 @@ export default function AuthCallbackPage() {
     setRoleDest(role);
     setStatus('success');
     
-    // We update local storage or cookie here. 
-    // In AuthProvider, login(email, password) handles normal login. 
-    // We can just store it directly for OAuth.
     if (typeof window !== 'undefined') {
+      const authUser = {
+        id: token,
+        fullName: name || 'Aurelis Member',
+        accountName: name || 'member',
+        email: '',
+        role: role,
+      };
+      const session = {
+        token: token,
+        user: authUser,
+      };
+      localStorage.setItem('aurelis.session.v1', JSON.stringify(session));
       localStorage.setItem('aurelis_token', token);
       localStorage.setItem('aurelis_role', role);
       if (name) localStorage.setItem('aurelis_name', name);
     }
-    setAuthOpen(false); // Make sure modal stays closed
+    setAuthOpen(false);
 
     // Wait for animation then redirect
     setTimeout(() => {
-      window.location.href = dashPath(role); // Force full navigation to avoid app context sharing issues if needed
+      window.location.href = dashPath(role);
     }, 2500);
   }, [searchParams, router, setAuthOpen]);
 
@@ -120,5 +129,17 @@ export default function AuthCallbackPage() {
         </motion.p>
       </motion.div>
     </div>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#050B08] flex items-center justify-center font-sans">
+        <div className="w-16 h-16 border-4 border-[#C8B08F]/20 border-t-[#C8B08F] rounded-full animate-spin" />
+      </div>
+    }>
+      <AuthCallbackContent />
+    </Suspense>
   );
 }
