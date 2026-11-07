@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "installCommand": "cd frontend && npm install && npm run install:all",
+  "buildCommand": "cd frontend && npm run build",
+  "outputDirectory": "frontend/dist",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/patient/.*", "dest": "/patient/index.html" },
+    { "src": "/doctor/.*", "dest": "/doctor/index.html" },
+    { "src": "/admin/.*", "dest": "/admin/index.html" },
+    { "src": "/(.*)", "dest": "/" }
+  ]
+}
