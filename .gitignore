@@ -27,3 +27,8 @@ graphify-out/
 .DS_Store
 
 !.env.example
+
+# Credentials & Secrets
+*client_secret*.json
+*credentials*.json
+*service_account*.json
