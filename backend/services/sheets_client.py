@@ -92,6 +92,13 @@ class SheetsClient:
     # --- service construction ---
 
     def _creds(self):
+        if getattr(settings, "google_service_account_json", None):
+            try:
+                import json
+                info = json.loads(settings.google_service_account_json)
+                return ServiceAccountCredentials.from_service_account_info(info, scopes=_SCOPES)
+            except Exception as e:
+                logger.error("failed_to_parse_service_account_json", error=str(e))
         if settings.google_sheets_service_account_file:
             return ServiceAccountCredentials.from_service_account_file(
                 settings.google_sheets_service_account_file, scopes=_SCOPES,
@@ -123,7 +130,9 @@ class SheetsClient:
     @property
     def configured(self) -> bool:
         return bool(
-            settings.google_sheets_service_account_file or settings.gmail_refresh_token
+            getattr(settings, "google_service_account_json", None)
+            or settings.google_sheets_service_account_file
+            or settings.gmail_refresh_token
         )
 
     # --- per-month dynamic file discovery ---

@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     clinic_name: str = "Alder & Sage"
     clinic_timezone: str = "UTC"
     google_sheets_service_account_file: str = ""
+    google_service_account_json: str = ""
     openrouter_base_url: str = ""
     openrouter_api_key: str = ""
     openrouter_model: str = ""
