@@ -30,10 +30,17 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    logger.info('Database tables created / verified')
-    await notify_startup('Alder & Sage backend started successfully')
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info('Database tables created / verified')
+    except Exception as e:
+        logger.warning(f'Database table check notice: {e}')
+
+    try:
+        await notify_startup('Alder & Sage backend started successfully')
+    except Exception as e:
+        logger.warning(f'Startup notification notice: {e}')
     yield
     # Shutdown
     logger.info('Shutting down Alder & Sage backend')
