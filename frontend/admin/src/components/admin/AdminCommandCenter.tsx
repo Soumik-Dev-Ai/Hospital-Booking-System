@@ -78,58 +78,99 @@ export function AdminCommandCenter({ todayISO }: { todayISO: string }) {
 
       <div className="mx-auto w-full max-w-6xl px-4 pb-24 sm:px-6 lg:px-8">
         {/* ––––– Brand bar ––––– */}
-        <header className="flex items-center justify-between py-5">
-          <motion.button
-            type="button"
-            onClick={() => setSwitcherOpen(true)}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="flex items-center gap-3 text-left group cursor-pointer focus:outline-none"
-            title="Click to switch panels"
-          >
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-forest-800 text-alabaster-50 shadow-lg shadow-forest-900/25 group-hover:bg-forest-900 transition-colors">
-              <svg viewBox="0 0 36 36" fill="none" className="h-6 w-6">
-                <circle cx="18" cy="18" r="15" stroke="rgba(230,205,161,0.5)" strokeWidth="1.5" />
-                <circle cx="18" cy="18" r="10.5" stroke="rgba(244,242,232,0.5)" strokeWidth="1" />
-                <path d="M18 10.5v15M10.5 18h15" stroke="rgba(244,242,232,0.9)" strokeWidth="2" strokeLinecap="round" />
-                <circle cx="18" cy="18" r="3" fill="#c9a26b" />
-              </svg>
-            </span>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <p className="font-display text-lg font-semibold leading-none text-forest-900 uppercase tracking-widest group-hover:text-forest-700 transition-colors">
-                  AURELIS
-                </p>
-                <svg className="w-3.5 h-3.5 text-forest-500 opacity-60 group-hover:opacity-100 group-hover:translate-y-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-              <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.24em] text-forest-500">
-                Private Medical Concierge
-              </p>
-            </div>
-          </motion.button>
-
+        <header className="flex flex-wrap items-center justify-between gap-4 py-5 border-b border-forest-900/10 mb-6">
           <div className="flex items-center gap-3">
+            {/* Top-Left Home Button */}
+            <a
+              href="/"
+              className="flex items-center gap-1.5 rounded-full border border-forest-600/25 bg-forest-600/10 px-3 py-1.5 text-xs font-semibold text-forest-800 hover:bg-forest-600/20 hover:text-forest-950 transition-all shadow-sm group"
+              title="Return to Aurelis Homepage"
+            >
+              <svg className="w-3.5 h-3.5 text-forest-700 group-hover:-translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+              <span>Home</span>
+            </a>
+
+            {/* Brand Logo & Emblem with Switcher Trigger */}
+            <motion.button
+              type="button"
+              onClick={() => setSwitcherOpen(true)}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex items-center gap-3 text-left group cursor-pointer focus:outline-none"
+              title="Click to switch panels"
+            >
+              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-forest-800 text-alabaster-50 shadow-lg shadow-forest-900/25 group-hover:bg-forest-900 transition-colors">
+                <svg viewBox="0 0 36 36" fill="none" className="h-6 w-6">
+                  <circle cx="18" cy="18" r="15" stroke="rgba(230,205,161,0.5)" strokeWidth="1.5" />
+                  <circle cx="18" cy="18" r="10.5" stroke="rgba(244,242,232,0.5)" strokeWidth="1" />
+                  <path d="M18 10.5v15M10.5 18h15" stroke="rgba(244,242,232,0.9)" strokeWidth="2" strokeLinecap="round" />
+                  <circle cx="18" cy="18" r="3" fill="#c9a26b" />
+                </svg>
+              </span>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <p className="font-display text-lg font-semibold leading-none text-forest-900 uppercase tracking-widest group-hover:text-forest-700 transition-colors">
+                    AURELIS
+                  </p>
+                  <svg className="w-3.5 h-3.5 text-forest-500 opacity-60 group-hover:opacity-100 group-hover:translate-y-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+                <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.24em] text-forest-500">
+                  Private Medical Concierge
+                </p>
+              </div>
+            </motion.button>
+          </div>
+
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            {/* Master Account Switcher Button (Always Visible) */}
             <motion.button
               type="button"
               onClick={() => setSwitcherOpen(true)}
               whileHover={{ scale: 1.04, y: -1 }}
               whileTap={{ scale: 0.96 }}
-              className="hidden rounded-full border border-forest-600/20 bg-forest-600/8 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-forest-700 sm:inline-flex items-center gap-1.5 hover:bg-forest-600/15 transition-all cursor-pointer shadow-sm"
+              className="inline-flex items-center gap-2 rounded-full border border-champagne-400/40 bg-champagne-400/15 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-forest-900 hover:bg-champagne-400/25 transition-all cursor-pointer shadow-sm"
+              title="Master Account Switcher (Admin / Doctor / Patient)"
             >
-              <span>Admin Console</span>
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Switch Portal</span>
               <svg className="w-3 h-3 text-forest-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
               </svg>
             </motion.button>
+
+            {/* Avatar */}
             <button
               type="button"
               onClick={() => setSwitcherOpen(true)}
               className="cursor-pointer focus:outline-none rounded-full ring-2 ring-forest-600/20 hover:ring-forest-600/40 transition"
               title="Switch panel"
             >
-              <Avatar name="A. Mercer" hue={152} size={38} />
+              <Avatar name="A. Mercer" hue={152} size={36} />
+            </button>
+
+            {/* Top-Right Logout Button */}
+            <button
+              type="button"
+              onClick={() => {
+                try {
+                  window.localStorage.removeItem("aurelis.session.v1");
+                  window.localStorage.removeItem("admin_token");
+                  window.localStorage.removeItem("token");
+                  window.localStorage.removeItem("doctor_token");
+                } catch {}
+                window.location.href = "/";
+              }}
+              className="flex items-center gap-1.5 rounded-full border border-warn-500/30 bg-warn-500/10 px-3 py-1.5 text-xs font-semibold text-warn-700 hover:bg-warn-500/20 transition-all cursor-pointer shadow-sm group"
+              title="Sign out and return to Homepage"
+            >
+              <svg className="w-3.5 h-3.5 text-warn-600 group-hover:translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              <span className="hidden xs:inline">Sign Out</span>
             </button>
           </div>
         </header>

@@ -29,26 +29,47 @@ export function DoctorOversight({
   const q = query.trim().toLowerCase();
 
   const rows = useMemo(() => {
-    const filtered = data.doctors.filter(
-      (d) =>
+    const doctors = data?.doctors || [];
+    const appointments = data?.appointments || [];
+    const filtered = doctors.filter((d) => {
+      const name = d?.name || (d as any)?.full_name || "";
+      const specialty = d?.specialty || "";
+      const room = d?.room || "";
+      return (
         q === "" ||
-        d.name.toLowerCase().includes(q) ||
-        d.specialty.toLowerCase().includes(q) ||
-        d.room.toLowerCase().includes(q)
-    );
+        name.toLowerCase().includes(q) ||
+        specialty.toLowerCase().includes(q) ||
+        room.toLowerCase().includes(q)
+      );
+    });
     return filtered
-      .map((doctor) => ({
-        doctor,
-        appts: data.appointments
-          .filter((a) => a.doctorId === doctor.id && a.date === date && a.status !== "cancelled")
-          .sort((a, b) => a.time.localeCompare(b.time)),
-      }))
+      .map((doctor) => {
+        const docId = String(doctor.id);
+        const appts = appointments
+          .filter(
+            (a) =>
+              (String(a.doctorId) === docId || String((a as any).doctor_id) === docId) &&
+              a.date === date &&
+              a.status !== "cancelled"
+          )
+          .sort((a, b) => (a.time || "").localeCompare(b.time || ""));
+        return {
+          doctor: {
+            ...doctor,
+            name: doctor.name || (doctor as any).full_name || "Doctor",
+            specialty: doctor.specialty || "General Medicine",
+            room: doctor.room || "Room 101",
+            hue: typeof doctor.hue === "number" ? doctor.hue : 152,
+          },
+          appts,
+        };
+      })
       .sort((a, b) => b.appts.length - a.appts.length);
   }, [data, q, date]);
 
   const maxVolume = Math.max(1, ...rows.map((r) => r.appts.length));
   const total = rows.reduce((sum, r) => sum + r.appts.length, 0);
-  const selectedDoctor = data.doctors.find((d) => d.id === selectedDoctorId) ?? null;
+  const selectedDoctor = (data?.doctors || []).find((d) => String(d.id) === String(selectedDoctorId)) ?? null;
 
   return (
     <div className="space-y-8">

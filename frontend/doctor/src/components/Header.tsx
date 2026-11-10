@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { CalendarDays, UploadCloud } from "lucide-react";
+import { CalendarDays, UploadCloud, Home, LogOut, ArrowLeftRight } from "lucide-react";
 import { useWorkspace, type TabId } from "../lib/store";
 import { Avatar } from "./ui";
 import { cn } from "../utils/cn";
@@ -55,17 +55,42 @@ export default function Header({
     <header className="fixed inset-x-0 top-0 z-40">
       <div className="border-b border-white/[0.07] bg-forest-950/55 backdrop-blur-2xl">
         <div className="mx-auto flex h-16 w-full max-w-[88rem] items-center gap-3 px-4 sm:gap-5 sm:px-6">
-          {/* brand */}
+          {/* brand & home */}
           <div className="flex items-center gap-3">
-            <BrandMark />
-            <div className="hidden leading-tight lg:block">
-              <div className="font-display text-[15px] tracking-[0.08em] text-alabaster">
-                AURELIS
-              </div>
-              <div className="text-[9px] font-semibold tracking-[0.3em] text-sage-dim uppercase">
-                Private Medical Concierge
+            <a
+              href="/"
+              className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-alabaster hover:bg-white/10 hover:text-white transition-all shadow-sm"
+              title="Return to Aurelis Homepage"
+            >
+              <Home size={14} className="text-emerald-400" />
+              <span className="hidden sm:inline">Home</span>
+            </a>
+
+            <div className="flex items-center gap-2.5">
+              <BrandMark />
+              <div className="hidden leading-tight lg:block">
+                <div className="font-display text-[15px] tracking-[0.08em] text-alabaster">
+                  AURELIS
+                </div>
+                <div className="text-[9px] font-semibold tracking-[0.3em] text-sage-dim uppercase">
+                  Doctor Desk
+                </div>
               </div>
             </div>
+
+            {/* Switch to Admin / Master Switcher */}
+            <button
+              type="button"
+              onClick={() => {
+                window.location.href = "/admin/";
+              }}
+              className="hidden md:flex items-center gap-1.5 rounded-full border border-champagne-400/40 bg-champagne-400/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-alabaster hover:bg-champagne-400/25 transition-all shadow-sm cursor-pointer"
+              title="Switch to Admin Console"
+            >
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Admin Console</span>
+              <ArrowLeftRight size={12} className="text-champagne-300" />
+            </button>
           </div>
 
           <div className="hidden h-8 w-px bg-white/10 xl:block" />
@@ -116,7 +141,7 @@ export default function Header({
 
           <div className="hidden h-8 w-px bg-white/10 xl:block" />
 
-          {/* doctor */}
+          {/* doctor identity & top-right logout */}
           <div className="flex items-center gap-3">
             <div className="hidden text-right leading-tight sm:block">
               <div className="text-[13px] font-semibold text-alabaster">
@@ -132,6 +157,22 @@ export default function Header({
                 <span className="absolute inset-0 rounded-full bg-mint animate-pulse-ring" />
               </span>
             </div>
+
+            {/* Top-Right Logout Button */}
+            <button
+              type="button"
+              onClick={() => {
+                try {
+                  localStorage.clear();
+                } catch {}
+                window.location.href = "/";
+              }}
+              className="flex items-center gap-1.5 rounded-full border border-warn-500/30 bg-warn-500/10 px-3 py-1.5 text-xs font-semibold text-warn-300 hover:bg-warn-500/20 transition-all cursor-pointer shadow-sm ml-1"
+              title="Sign out and return to Homepage"
+            >
+              <LogOut size={13} className="text-warn-400" />
+              <span className="hidden sm:inline">Sign Out</span>
+            </button>
           </div>
         </div>
       </div>

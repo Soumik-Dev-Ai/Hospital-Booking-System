@@ -45,6 +45,16 @@ export default function Header({ view, onNav, onBook }: HeaderProps) {
     >
       <div className="mx-auto max-w-6xl">
         <div className="flex items-center gap-2.5 rounded-2xl border border-white/[0.07] bg-forest-950/75 px-3 py-2.5 shadow-[0_18px_50px_-24px_rgba(0,0,0,0.5)] backdrop-blur-2xl md:gap-4 md:px-5">
+          {/* Top-Left Home Button */}
+          <a
+            href="/"
+            className="flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-alabaster hover:bg-white/10 hover:text-white transition-all shadow-sm"
+            title="Return to Aurelis Homepage"
+          >
+            <span className="font-display text-emerald-400">←</span>
+            <span className="hidden sm:inline">Home</span>
+          </a>
+
           {/* Brand */}
           <button
             onClick={() => onNav("hub")}
@@ -63,7 +73,7 @@ export default function Header({ view, onNav, onBook }: HeaderProps) {
             <div className="hidden text-left leading-none sm:block">
               <div className="font-display text-[17px] tracking-wide text-alabaster uppercase">AURELIS</div>
               <div className="mt-1.5 text-[8.5px] font-semibold uppercase tracking-[0.26em] text-sage-dim">
-                Private Medical Concierge
+                Patient Portal
               </div>
             </div>
           </button>
@@ -74,9 +84,25 @@ export default function Header({ view, onNav, onBook }: HeaderProps) {
             <NavButton active={view === "records"} label="Medical Records" onClick={() => onNav("records")} />
           </nav>
 
-          {/* Patient identity */}
+          {/* Patient identity & Top-Right Logout */}
           <div className="ml-auto flex items-center gap-2.5">
             <ProfilePill />
+
+            {/* Top-Right Logout Button */}
+            <button
+              type="button"
+              onClick={() => {
+                try {
+                  localStorage.removeItem("aurelis.session.v1");
+                  localStorage.clear();
+                } catch {}
+                window.location.href = "/";
+              }}
+              className="flex shrink-0 items-center gap-1.5 rounded-full border border-warn-500/30 bg-warn-500/10 px-3 py-1.5 text-xs font-semibold text-warn-300 hover:bg-warn-500/20 transition-all cursor-pointer shadow-sm"
+              title="Sign out and return to Homepage"
+            >
+              <span>Sign Out</span>
+            </button>
 
             {/* Notification bell */}
             <button
