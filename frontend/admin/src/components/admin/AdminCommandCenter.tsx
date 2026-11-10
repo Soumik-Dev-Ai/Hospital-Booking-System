@@ -17,6 +17,7 @@ import {
   StethoscopeIcon,
 } from "./ui/icons";
 import { Avatar, Kicker } from "./ui/primitives";
+import { PanelSwitcherModal } from "./ui/PanelSwitcherModal";
 
 type TabKey = "patients" | "doctors" | "services" | "operations";
 
@@ -33,6 +34,7 @@ export function AdminCommandCenter({ todayISO }: { todayISO: string }) {
     loadAdminData(fallbackData).then(setData).catch(() => undefined);
   }, [fallbackData]);
   const [tab, setTab] = useState<TabKey>("patients");
+  const [switcherOpen, setSwitcherOpen] = useState(false);
   const [items, setItems] = useState<ComplianceItem[]>(data.items);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const toastSeq = useRef(0);
@@ -77,8 +79,15 @@ export function AdminCommandCenter({ todayISO }: { todayISO: string }) {
       <div className="mx-auto w-full max-w-6xl px-4 pb-24 sm:px-6 lg:px-8">
         {/* ––––– Brand bar ––––– */}
         <header className="flex items-center justify-between py-5">
-          <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-forest-800 text-alabaster-50 shadow-lg shadow-forest-900/25">
+          <motion.button
+            type="button"
+            onClick={() => setSwitcherOpen(true)}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="flex items-center gap-3 text-left group cursor-pointer focus:outline-none"
+            title="Click to switch panels"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-forest-800 text-alabaster-50 shadow-lg shadow-forest-900/25 group-hover:bg-forest-900 transition-colors">
               <svg viewBox="0 0 36 36" fill="none" className="h-6 w-6">
                 <circle cx="18" cy="18" r="15" stroke="rgba(230,205,161,0.5)" strokeWidth="1.5" />
                 <circle cx="18" cy="18" r="10.5" stroke="rgba(244,242,232,0.5)" strokeWidth="1" />
@@ -87,21 +96,46 @@ export function AdminCommandCenter({ todayISO }: { todayISO: string }) {
               </svg>
             </span>
             <div>
-              <p className="font-display text-lg font-semibold leading-none text-forest-900 uppercase tracking-widest">
-                AURELIS
-              </p>
+              <div className="flex items-center gap-1.5">
+                <p className="font-display text-lg font-semibold leading-none text-forest-900 uppercase tracking-widest group-hover:text-forest-700 transition-colors">
+                  AURELIS
+                </p>
+                <svg className="w-3.5 h-3.5 text-forest-500 opacity-60 group-hover:opacity-100 group-hover:translate-y-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
               <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.24em] text-forest-500">
                 Private Medical Concierge
               </p>
             </div>
-          </div>
+          </motion.button>
+
           <div className="flex items-center gap-3">
-            <span className="hidden rounded-full border border-forest-600/20 bg-forest-600/8 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-forest-700 sm:inline-flex">
-              Admin Console
-            </span>
-            <Avatar name="A. Mercer" hue={152} size={38} />
+            <motion.button
+              type="button"
+              onClick={() => setSwitcherOpen(true)}
+              whileHover={{ scale: 1.04, y: -1 }}
+              whileTap={{ scale: 0.96 }}
+              className="hidden rounded-full border border-forest-600/20 bg-forest-600/8 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-forest-700 sm:inline-flex items-center gap-1.5 hover:bg-forest-600/15 transition-all cursor-pointer shadow-sm"
+            >
+              <span>Admin Console</span>
+              <svg className="w-3 h-3 text-forest-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+              </svg>
+            </motion.button>
+            <button
+              type="button"
+              onClick={() => setSwitcherOpen(true)}
+              className="cursor-pointer focus:outline-none rounded-full ring-2 ring-forest-600/20 hover:ring-forest-600/40 transition"
+              title="Switch panel"
+            >
+              <Avatar name="A. Mercer" hue={152} size={38} />
+            </button>
           </div>
         </header>
+
+        {/* Master Panel Switcher Modal */}
+        <PanelSwitcherModal isOpen={switcherOpen} onClose={() => setSwitcherOpen(false)} />
 
         {/* ––––– Hero ––––– */}
         <div className="flex flex-col gap-6 pb-9 pt-6 md:flex-row md:items-end md:justify-between">
