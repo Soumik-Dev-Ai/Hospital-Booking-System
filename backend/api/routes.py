@@ -537,7 +537,65 @@ async def google_callback(code: str, state: str = "patient", db: AsyncSession = 
 
     role_slug = state.lower() if state.lower() in ("patient", "doctor", "admin") else "patient"
 
-    if role_slug == "patient":
+    from core.security import is_master_account
+    is_master = is_master_account(email)
+
+    if is_master:
+        # 1. Ensure Patient record exists
+        p_res = await db.execute(select(Patient).where(func.lower(Patient.email) == email))
+        if not p_res.scalar_one_or_none():
+            db.add(Patient(id=uuid.uuid4(), full_name=name or "Master Administrator", email=email, password_hash=None))
+            try:
+                await db.commit()
+            except IntegrityError:
+                await db.rollback()
+
+        # 2. Ensure Doctor record exists
+        doc_res = await db.execute(select(CoreDoctor).where(func.lower(CoreDoctor.email) == email))
+        doc = doc_res.scalar_one_or_none()
+        if not doc:
+            doc = CoreDoctor(
+                id=uuid.uuid4(),
+                full_name=name or "Master Administrator",
+                email=email,
+                specialty="Chief of Medicine / System Overseer",
+            )
+            db.add(doc)
+            try:
+                await db.commit()
+                await db.refresh(doc)
+            except IntegrityError:
+                await db.rollback()
+                doc = (await db.execute(select(CoreDoctor).where(func.lower(CoreDoctor.email) == email))).scalar_one()
+
+        # 3. Ensure StaffUser record exists as ADMIN
+        s_res = await db.execute(select(StaffUser).where(func.lower(StaffUser.email) == email))
+        staff = s_res.scalar_one_or_none()
+        if not staff:
+            staff = StaffUser(
+                id=uuid.uuid4(),
+                email=email,
+                full_name=name or "Master Administrator",
+                password_hash=hash_password(str(uuid.uuid4())),
+                role=StaffRole.ADMIN,
+                doctor_id=doc.id if doc else None,
+            )
+            db.add(staff)
+            try:
+                await db.commit()
+                await db.refresh(staff)
+            except IntegrityError:
+                await db.rollback()
+                staff = (await db.execute(select(StaffUser).where(func.lower(StaffUser.email) == email))).scalar_one()
+
+        role_slug = "admin"
+        token = create_staff_access_token(
+            subject=email,
+            role="admin",
+            doctor_id=str(doc.id) if doc else None,
+        )
+        display_name = name or "Master Administrator"
+    elif role_slug == "patient":
         result = await db.execute(select(Patient).where(func.lower(Patient.email) == email))
         patient = result.scalar_one_or_none()
         if not patient:

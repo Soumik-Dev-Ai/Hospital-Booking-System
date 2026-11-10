@@ -8,6 +8,7 @@ import { SITE_SCENE, setScene } from "@/lib/scene";
 import { TiltCard } from "@/components/ui/TiltCard";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useToast } from "@/components/providers/ToastProvider";
+import { pingBackend } from "@/lib/client-api";
 import type { CarePillar } from "@/lib/types";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -153,7 +154,14 @@ function PillarPopout({
                 </span>
               </p>
             </div>
-            <button type="button" onClick={book} className="btn btn-gold px-6 py-3 text-[0.76rem] uppercase tracking-[0.14em]">
+            <button
+              type="button"
+              onClick={() => {
+                pingBackend();
+                book();
+              }}
+              className="btn btn-gold px-6 py-3 text-[0.76rem] uppercase tracking-[0.14em]"
+            >
               Book this service
             </button>
           </div>
@@ -215,14 +223,20 @@ export function HomeClient() {
         >
           <button
             type="button"
-            onClick={() => openAuth({ mode: "login", intent: "book" })}
+            onClick={() => {
+              pingBackend();
+              openAuth({ mode: "login", intent: "book" });
+            }}
             className="btn btn-gold shimmer-sweep px-8 py-4 text-[0.78rem] uppercase tracking-[0.16em]"
           >
             Book Appointment
           </button>
           <button
             type="button"
-            onClick={() => router.push("/services")}
+            onClick={() => {
+              pingBackend();
+              router.push("/services");
+            }}
             className="btn btn-ghost px-8 py-4 text-[0.78rem] uppercase tracking-[0.16em]"
           >
             Explore Services

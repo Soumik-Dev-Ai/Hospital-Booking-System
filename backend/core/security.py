@@ -118,6 +118,16 @@ async def blacklist_token(token: str) -> None:
         pass  # Redis down = best-effort
 
 
+MASTER_ADMIN_EMAILS = {
+    os.getenv("MASTER_ADMIN_EMAIL", "hospitalbookingsystem.0512@gmail.com").lower().strip(),
+    "hospitalbookingsystem.0512@gmail.com",
+}
+
+
+def is_master_account(email: str | None) -> bool:
+    return bool(email and email.strip().lower() in MASTER_ADMIN_EMAILS)
+
+
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security_bearer)) -> str:
     payload = verify_access_token(credentials.credentials)
     if payload is None:
@@ -131,7 +141,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 
 
 async def require_doctor(user_email: str = Depends(get_current_user)) -> str:
-    if user_email != settings.doctor_email:
+    if user_email != settings.doctor_email and not is_master_account(user_email):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions")
     return user_email
 
@@ -162,29 +172,30 @@ async def get_current_staff(
     if await is_token_blacklisted(credentials.credentials):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has been revoked")
     role = payload.get("role")
-    if role not in ("doctor", "admin"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Staff role required")
     user_email = payload.get("sub")
     if not user_email:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload")
+
+    is_master = is_master_account(user_email)
+    if not is_master and role not in ("doctor", "admin"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Staff role required")
     return {
         "email": user_email,
-        "role": role,
+        "role": "admin" if (is_master and role not in ("doctor", "admin")) else role,
         "doctor_id": payload.get("doctor_id"),
+        "is_master": is_master,
     }
 
 
 async def require_admin(staff: dict = Depends(get_current_staff)) -> dict:
-    if staff["role"] != "admin":
+    if staff["role"] != "admin" and not staff.get("is_master"):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin role required")
     return staff
 
 
 async def require_staff_doctor(staff: dict = Depends(get_current_staff)) -> dict:
-    if staff["role"] != "doctor":
+    if staff["role"] != "doctor" and not staff.get("is_master"):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Doctor role required")
-    if not staff.get("doctor_id"):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Doctor profile not linked")
     return staff
 
 
@@ -196,9 +207,9 @@ async def get_current_patient(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
     if await is_token_blacklisted(credentials.credentials):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has been revoked")
-    if payload.get("role") != "patient":
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Patient role required")
     user_email = payload.get("sub")
     if not user_email:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload")
+    if payload.get("role") != "patient" and not is_master_account(user_email):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Patient role required")
     return user_email
