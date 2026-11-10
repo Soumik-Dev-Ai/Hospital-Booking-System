@@ -197,6 +197,8 @@ async def require_admin(staff: dict = Depends(get_current_staff)) -> dict:
 async def require_staff_doctor(staff: dict = Depends(get_current_staff)) -> dict:
     if staff["role"] != "doctor" and not staff.get("is_master"):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Doctor role required")
+    if not staff.get("is_master") and not staff.get("doctor_id"):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Doctor role requires doctor_id")
     return staff
 
 
