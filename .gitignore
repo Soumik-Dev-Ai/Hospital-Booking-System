@@ -32,3 +32,5 @@ graphify-out/
 *client_secret*.json
 *credentials*.json
 *service_account*.json
+future-sunrise-*.json
+*-*.json
