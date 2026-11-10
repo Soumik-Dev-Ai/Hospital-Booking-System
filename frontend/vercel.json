@@ -1,65 +1,31 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "services": {
-    "admin": {
-      "root": "admin",
-      "framework": "nextjs"
-    },
-    "basewebsite": {
-      "root": "Base Website",
-      "framework": "nextjs"
-    },
-    "doctor": {
-      "root": "doctor",
-      "framework": "vite"
-    },
-    "patient": {
-      "root": "patient",
-      "framework": "vite"
-    }
-  },
+  "cleanUrls": true,
+  "trailingSlash": false,
   "rewrites": [
     {
-      "source": "/patient",
-      "destination": {
-        "service": "patient"
-      }
+      "source": "/patient/:path*",
+      "destination": "/patient/index.html"
     },
     {
-      "source": "/patient/(.*)",
-      "destination": {
-        "service": "patient"
-      }
+      "source": "/patient",
+      "destination": "/patient/index.html"
+    },
+    {
+      "source": "/doctor/:path*",
+      "destination": "/doctor/index.html"
     },
     {
       "source": "/doctor",
-      "destination": {
-        "service": "doctor"
-      }
+      "destination": "/doctor/index.html"
     },
     {
-      "source": "/doctor/(.*)",
-      "destination": {
-        "service": "doctor"
-      }
+      "source": "/admin/:path*",
+      "destination": "/admin/index.html"
     },
     {
       "source": "/admin",
-      "destination": {
-        "service": "admin"
-      }
-    },
-    {
-      "source": "/admin/(.*)",
-      "destination": {
-        "service": "admin"
-      }
-    },
-    {
-      "source": "/(.*)",
-      "destination": {
-        "service": "basewebsite"
-      }
+      "destination": "/admin/index.html"
     }
   ]
 }

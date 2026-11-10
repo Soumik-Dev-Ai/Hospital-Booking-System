@@ -76,7 +76,7 @@ export function PanelSwitcherModal({
     setTransitioningTo(panel.title);
     setTimeout(() => {
       window.location.href = panel.route;
-    }, 480);
+    }, 150);
   };
 
   return (
@@ -95,7 +95,7 @@ export function PanelSwitcherModal({
               initial={{ opacity: 0, scale: 0.93, y: -16 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.94, y: -12 }}
-              transition={{ type: "spring", stiffness: 320, damping: 28 }}
+              transition={{ type: "spring", stiffness: 420, damping: 28 }}
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
@@ -194,12 +194,12 @@ export function PanelSwitcherModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
           >
             <motion.div
-              initial={{ scale: 0.85, opacity: 0 }}
+              initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
               className="flex flex-col items-center"
             >
               {/* Golden Rotating Ring */}

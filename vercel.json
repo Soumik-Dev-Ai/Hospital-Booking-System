@@ -1,0 +1,33 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "outputDirectory": "frontend/dist",
+  "buildCommand": "npm --prefix frontend run build",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/patient/:path*",
+      "destination": "/patient/index.html"
+    },
+    {
+      "source": "/patient",
+      "destination": "/patient/index.html"
+    },
+    {
+      "source": "/doctor/:path*",
+      "destination": "/doctor/index.html"
+    },
+    {
+      "source": "/doctor",
+      "destination": "/doctor/index.html"
+    },
+    {
+      "source": "/admin/:path*",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin",
+      "destination": "/admin/index.html"
+    }
+  ]
+}
