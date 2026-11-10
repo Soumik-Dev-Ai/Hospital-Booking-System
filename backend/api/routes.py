@@ -469,16 +469,22 @@ def register_routes(app):
     app.include_router(router, prefix="/api/v1")
 
 
+import os
 import httpx
 from fastapi.responses import RedirectResponse
 import uuid
+from urllib.parse import quote
+from sqlalchemy.exc import IntegrityError
+from models import Patient, StaffUser, StaffRole, Doctor as CoreDoctor
+from core.security import create_patient_access_token, create_staff_access_token, hash_password
 
 @router.get("/auth/google/login")
 async def google_login(role: str = "patient"):
     if not settings.google_client_id:
         raise HTTPException(status_code=500, detail="Google Client ID not configured")
-    
-    redirect_uri = f"{settings.app_base_url or 'http://localhost:8000'}/api/v1/auth/google/callback"
+
+    base_url = (settings.app_base_url or "http://localhost:8000").rstrip("/")
+    redirect_uri = f"{base_url}/api/v1/auth/google/callback"
     auth_url = (
         f"https://accounts.google.com/o/oauth2/v2/auth"
         f"?client_id={settings.google_client_id}"
@@ -494,9 +500,10 @@ async def google_login(role: str = "patient"):
 async def google_callback(code: str, state: str = "patient", db: AsyncSession = Depends(get_db)):
     if not settings.google_client_id or not settings.google_client_secret:
         raise HTTPException(status_code=500, detail="Google credentials not configured")
-        
-    redirect_uri = f"{settings.app_base_url or 'http://localhost:8000'}/api/v1/auth/google/callback"
-    
+
+    base_url = (settings.app_base_url or "http://localhost:8000").rstrip("/")
+    redirect_uri = f"{base_url}/api/v1/auth/google/callback"
+
     async with httpx.AsyncClient() as client:
         token_res = await client.post(
             "https://oauth2.googleapis.com/token",
@@ -510,51 +517,84 @@ async def google_callback(code: str, state: str = "patient", db: AsyncSession = 
         )
         if token_res.status_code != 200:
             raise HTTPException(status_code=400, detail="Failed to exchange Google token")
-            
+
         access_token = token_res.json().get("access_token")
-        
+
         userinfo_res = await client.get(
             "https://www.googleapis.com/oauth2/v2/userinfo",
             headers={"Authorization": f"Bearer {access_token}"}
         )
         if userinfo_res.status_code != 200:
             raise HTTPException(status_code=400, detail="Failed to fetch Google user profile")
-            
+
         profile = userinfo_res.json()
-        
-    email = profile.get("email")
-    name = profile.get("name") or "Google User"
-    
+
+    email = (profile.get("email") or "").strip().lower()
+    name = (profile.get("name") or "Google User").strip()
+
     if not email:
         raise HTTPException(status_code=400, detail="Google account has no email")
-        
-    # Check if user exists
-    from sqlalchemy import select
-    from database.models import User
-    from api.auth import create_access_token
-    
-    result = await db.execute(select(User).where(User.email == email))
-    user = result.scalar_one_or_none()
-    
-    if not user:
-        # Create new user
-        import bcrypt
-        random_pwd = str(uuid.uuid4())
-        hashed = bcrypt.hashpw(random_pwd.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-        user = User(
-            id=str(uuid.uuid4()),
-            email=email,
-            full_name=name,
-            password_hash=hashed,
-            role=state
+
+    role_slug = state.lower() if state.lower() in ("patient", "doctor", "admin") else "patient"
+
+    if role_slug == "patient":
+        result = await db.execute(select(Patient).where(func.lower(Patient.email) == email))
+        patient = result.scalar_one_or_none()
+        if not patient:
+            patient = Patient(id=uuid.uuid4(), full_name=name, email=email, password_hash=None)
+            db.add(patient)
+            try:
+                await db.commit()
+                await db.refresh(patient)
+            except IntegrityError:
+                await db.rollback()
+                result = await db.execute(select(Patient).where(func.lower(Patient.email) == email))
+                patient = result.scalar_one()
+        token = create_patient_access_token(subject=patient.email)
+        display_name = patient.full_name or name
+    else:
+        staff_role = StaffRole.DOCTOR if role_slug == "doctor" else StaffRole.ADMIN
+        result = await db.execute(select(StaffUser).where(func.lower(StaffUser.email) == email))
+        staff = result.scalar_one_or_none()
+        if not staff:
+            doc_id = None
+            if staff_role == StaffRole.DOCTOR:
+                doc_res = await db.execute(select(CoreDoctor).where(func.lower(CoreDoctor.email) == email))
+                doc = doc_res.scalar_one_or_none()
+                if not doc:
+                    doc = CoreDoctor(id=uuid.uuid4(), full_name=name, email=email)
+                    db.add(doc)
+                    await db.flush()
+                doc_id = doc.id
+            staff = StaffUser(
+                id=uuid.uuid4(),
+                email=email,
+                full_name=name,
+                password_hash=hash_password(str(uuid.uuid4())),
+                role=staff_role,
+                doctor_id=doc_id,
+            )
+            db.add(staff)
+            try:
+                await db.commit()
+                await db.refresh(staff)
+            except IntegrityError:
+                await db.rollback()
+                result = await db.execute(select(StaffUser).where(func.lower(StaffUser.email) == email))
+                staff = result.scalar_one()
+        role_slug = staff.role.value
+        token = create_staff_access_token(
+            subject=staff.email,
+            role=role_slug,
+            doctor_id=str(staff.doctor_id) if staff.doctor_id else None,
         )
-        db.add(user)
-        await db.commit()
-        await db.refresh(user)
-        
-    # Generate JWT
-    token = create_access_token(user.id, user.role, user.email)
-    
-    # Redirect to frontend callback
-    frontend_url = getattr(settings, "frontend_url", None) or os.getenv("FRONTEND_URL") or (settings.cors_origins[0] if settings.cors_origins else "http://localhost:3000")
-    return RedirectResponse(f"{frontend_url}/auth/callback?token={token}&role={user.role}&name={name.replace(' ', '%20')}")
+        display_name = staff.full_name or name
+
+    frontend_url = (
+        getattr(settings, "frontend_url", None)
+        or os.getenv("FRONTEND_URL")
+        or (settings.cors_origins[0] if settings.cors_origins else "http://localhost:3000")
+    ).rstrip("/")
+    return RedirectResponse(
+        f"{frontend_url}/auth/callback?token={token}&role={role_slug}&name={quote(display_name)}"
+    )

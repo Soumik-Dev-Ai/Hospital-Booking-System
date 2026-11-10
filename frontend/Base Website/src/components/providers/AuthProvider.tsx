@@ -88,6 +88,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
   const [authIntent, setAuthIntent] = useState<"book" | null>(null);
 
+  // Wake backend on site load so Render cold starts finish before login/booking.
+  useEffect(() => {
+    const apiBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace(/\/+$/, "");
+    fetch(`${apiBase}/health`, { method: "GET", keepalive: true }).catch(() => {});
+  }, []);
+
   // Restore a cached session so returning members never re-authenticate.
   useEffect(() => {
     const stored = readStoredSession();
