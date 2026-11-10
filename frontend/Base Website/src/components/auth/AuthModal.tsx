@@ -181,7 +181,7 @@ export function AuthModal() {
               <button
                 type="button"
                 onClick={() => {
-                  const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+                  const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/+$/, '');
                   window.location.href = `${apiBase}/api/v1/auth/google/login?role=${role}`;
                 }}
                 className="w-full h-11 bg-transparent border border-[#F4F0EA]/20 rounded-full text-[#F4F0EA] font-medium tracking-wide hover:bg-[#F4F0EA]/5 transition-all duration-300 flex items-center justify-center gap-3 relative overflow-hidden group mb-4"
